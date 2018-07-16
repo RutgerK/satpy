@@ -279,3 +279,49 @@ class NCSLSTRAngles(BaseFileHandler):
     @property
     def end_time(self):
         return self._end_time
+
+
+class NCSLSTRCloudmask(BaseFileHandler):
+
+    def __init__(self, filename, filename_info, filetype_info):
+        super(NCSLSTRCloudmask, self).__init__(filename, filename_info,
+                                        filetype_info)
+        self.nc = xr.open_dataset(filename,
+                                  decode_cf=True,
+                                  mask_and_scale=True,
+                                  chunks={'columns': CHUNK_SIZE,
+                                          'rows': CHUNK_SIZE})
+
+        self.nc = self.nc.rename({'columns': 'x', 'rows': 'y'})
+        self.view = 'n'  # n for nadir, o for oblique
+
+        # TODO: get metadata from the manifest file (xfdumanifest.xml)
+        self.platform_name = PLATFORM_NAMES[filename_info['mission_id']]
+        self.sensor = 'slstr'
+
+    def get_dataset(self, key, info):
+        """Load a dataset."""
+        logger.debug('Reading %s.', key.name)
+
+        flags = self.nc[key.name]
+
+        info.update(flags.attrs)
+        info.update(key.to_dict())
+        info.update(dict(units='[-]',
+                         _FillValue=np.iinfo(flags.data.dtype).max,
+                         platform_name=self.platform_name,
+                         sensor=self.sensor))
+
+        flags.attrs = info
+
+        # print(key.name, flags.data.shape, flags.data.dtype)
+
+        return flags
+
+    @property
+    def start_time(self):
+        return datetime.strptime(self.nc.attrs['start_time'], '%Y-%m-%dT%H:%M:%S.%fZ')
+
+    @property
+    def end_time(self):
+        return datetime.strptime(self.nc.attrs['stop_time'], '%Y-%m-%dT%H:%M:%S.%fZ')

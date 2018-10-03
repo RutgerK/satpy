@@ -15,40 +15,27 @@ navigations:
       rows_per_scan: 10
 
 datasets:
-  '1':
-    name: '1'
-    resolution:
-      250: {file_type: hdf_eos_data_250m}
-      500: {file_type: hdf_eos_data_500m}
-      1000: {file_type: hdf_eos_data_1000m}
-    calibration: [reflectance]
+  'b1_250m':
+    name: 'b1_250m'
+    resolution: 250
+    file_type: hdf_eos_l2
     coordinates: [longitude, latitude]
-    wavelength:
-    - 0.62
-    - 0.645
-    - 0.67
-  '2':
-    name: '2'
-    resolution:
-      250: {file_type: hdf_eos_data_250m}
-      500: {file_type: hdf_eos_data_500m}
-      1000: {file_type: hdf_eos_data_1000m}
-    calibration: [reflectance]
+
+  'b2_250m':
+    name: 'b2_250m'
+    resolution: 250
+    file_type: hdf_eos_l2
     coordinates: [longitude, latitude]
-    wavelength:
-    - 0.841
-    - 0.8585
-    - 0.876
 
   longitude1k:
-    file_type: hdf_eos_l2
+    file_type: hdf_eos_geo
     name: longitude
     resolution: [1000, 500, 250]
     standard_name: longitude
     units: degree
 
   latitude1k:
-    file_type: hdf_eos_l2
+    file_type: hdf_eos_geo
     name: latitude
     resolution: [1000, 500, 250]
     standard_name: latitude
@@ -57,6 +44,10 @@ datasets:
 file_types:
   hdf_eos_l2:
     file_patterns: ['M{platform_indicator:1s}D09.A{start_time:%Y%j.%H%M}.{collection:03d}.{processing_time:%Y%j%H%M%S}.hdf']
-    file_reader: !!python/name:satpy.readers.hdfeos_l2.HDFEOSBandReader
+    file_reader: !!python/name:satpy.readers.hdfeos_l2.HDFEOSBandReader_L2
+
+  hdf_eos_geo:
+    file_patterns: ['M{platform_indicator:1s}D03.A{start_time:%Y%j.%H%M}.{collection:03d}.{processing_time:%Y%j%H%M%S}.hdf']
+    file_reader: !!python/name:satpy.readers.hdfeos_l1b.HDFEOSGeoReader
    
 

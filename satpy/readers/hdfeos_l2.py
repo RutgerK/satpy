@@ -51,21 +51,37 @@ from satpy.readers.hdf4_utils import from_sds
 
 logger = logging.getLogger(__name__)
 
+PLATFORM_NAMES = {'O': 'MODIS-Terra',
+                  'Y': 'MODIS-Aqua'}
 
-class HDFEOSFileReader(BaseFileHandler):
+class HDFEOSBandReader_L2(BaseFileHandler):
 
     def __init__(self, filename, filename_info, filetype_info):
-        super(HDFEOSFileReader, self).__init__(filename, filename_info, filetype_info)
-        try:
-            self.sd = SD(str(self.filename))
-        except HDF4Error as err:
-            raise ValueError("Could not load data from " + str(self.filename)
-                             + ": " + str(err))
-        self.metadata = self.read_mda(self.sd.attributes()['CoreMetadata.0'])
-        self.metadata.update(self.read_mda(
-            self.sd.attributes()['StructMetadata.0']))
-        self.metadata.update(self.read_mda(
-            self.sd.attributes()['ArchiveMetadata.0']))
+
+        super(HDFEOSBandReader_L2, self).__init__(filename, filename_info,
+                                         filetype_info)
+
+        chunks = {'1km Data Lines:MODIS SWATH TYPE L2': CHUNK_SIZE,
+                  '1km Data Samples:MODIS SWATH TYPE L2': CHUNK_SIZE,
+                  '250m Data Lines:MODIS SWATH TYPE L2': CHUNK_SIZE,
+                  '250m Data Samples:MODIS SWATH TYPE L2': CHUNK_SIZE,
+                  '500m Data Lines:MODIS SWATH TYPE L2': CHUNK_SIZE,
+                  '500m Data Samples:MODIS SWATH TYPE L2': CHUNK_SIZE}
+
+        self.nc = xr.open_dataset(filename,
+                                  decode_cf=True,
+                                  mask_and_scale=True,
+                                  chunks=chunks)
+
+        # self.nc = self.nc.rename({'columns': 'x', 'rows': 'y'})
+
+        # TODO: get metadata from the manifest file (xfdumanifest.xml)
+        self.platform_name = PLATFORM_NAMES[filename_info['platform_indicator']]
+        self.sensor = 'modis'
+
+        self.metadata = self.read_mda(self.nc.attrs['CoreMetadata.0'])
+        self.metadata.update(self.read_mda(self.nc.attrs['StructMetadata.0']))
+        self.metadata.update(self.read_mda(self.nc.attrs['ArchiveMetadata.0']))
 
     @property
     def start_time(self):
@@ -78,6 +94,21 @@ class HDFEOSFileReader(BaseFileHandler):
         date = (self.metadata['INVENTORYMETADATA']['RANGEDATETIME']['RANGEENDINGDATE']['VALUE'] + ' ' +
                 self.metadata['INVENTORYMETADATA']['RANGEDATETIME']['RANGEENDINGTIME']['VALUE'])
         return datetime.strptime(date, '%Y-%m-%d %H:%M:%S.%f')
+
+    def get_dataset(self, key, info):
+        """Load a dataset."""
+
+        logger.debug('Reading %s.', key.name)
+
+        band_name, resolution = info['name'].split('_')
+        band_num = band_name[1:]
+
+        ds_name = '{resolution} Surface Reflectance Band {band_num}'.format(resolution=resolution, 
+                                                                            band_num=band_num)
+
+        variable = self.nc[ds_name]
+
+        return variable
 
     def read_mda(self, attribute):
 
@@ -143,253 +174,3 @@ class HDFEOSFileReader(BaseFileHandler):
                 current_dict[key] = val
 
         return mda
-
-
-class HDFEOSGeoReader(HDFEOSFileReader):
-
-    def __init__(self, filename, filename_info, filetype_info):
-        HDFEOSFileReader.__init__(self, filename, filename_info, filetype_info)
-
-        ds = self.metadata['INVENTORYMETADATA'][
-            'COLLECTIONDESCRIPTIONCLASS']['SHORTNAME']['VALUE']
-        if ds.endswith('D03'):
-            self.resolution = 1000
-        else:
-            self.resolution = 5000
-        self.cache = {}
-        self.cache[250] = {}
-        self.cache[250]['lons'] = None
-        self.cache[250]['lats'] = None
-
-        self.cache[500] = {}
-        self.cache[500]['lons'] = None
-        self.cache[500]['lats'] = None
-
-        self.cache[1000] = {}
-        self.cache[1000]['lons'] = None
-        self.cache[1000]['lats'] = None
-
-    def get_dataset(self, key, info, out=None, xslice=None, yslice=None):
-        """Get the dataset designated by *key*."""
-        if key.name in ['solar_zenith_angle', 'solar_azimuth_angle',
-                        'satellite_zenith_angle', 'satellite_azimuth_angle']:
-
-            if key.name == 'solar_zenith_angle':
-                var = self.sd.select('SolarZenith')
-            if key.name == 'solar_azimuth_angle':
-                var = self.sd.select('SolarAzimuth')
-            if key.name == 'satellite_zenith_angle':
-                var = self.sd.select('SensorZenith')
-            if key.name == 'satellite_azimuth_angle':
-                var = self.sd.select('SensorAzimuth')
-
-            data = xr.DataArray(from_sds(var, chunks=CHUNK_SIZE),
-                                dims=['y', 'x']).astype(np.float32)
-            data = data.where(data != var._FillValue)
-            data = data * np.float32(var.scale_factor)
-
-            data.attrs = info
-            return data
-
-        if key.name not in ['longitude', 'latitude']:
-            return
-
-        if (self.cache[key.resolution]['lons'] is None or
-                self.cache[key.resolution]['lats'] is None):
-
-            lons_id = DatasetID('longitude',
-                                resolution=key.resolution)
-            lats_id = DatasetID('latitude',
-                                resolution=key.resolution)
-
-            lons, lats = self.load(
-                [lons_id, lats_id], interpolate=False, raw=True)
-            if key.resolution != self.resolution:
-                from geotiepoints.geointerpolator import GeoInterpolator
-                lons, lats = self._interpolate([lons, lats],
-                                               self.resolution,
-                                               lons_id.resolution,
-                                               GeoInterpolator)
-                lons = np.ma.masked_invalid(np.ascontiguousarray(lons))
-                lats = np.ma.masked_invalid(np.ascontiguousarray(lats))
-            self.cache[key.resolution]['lons'] = lons
-            self.cache[key.resolution]['lats'] = lats
-
-        if key.name == 'latitude':
-            data = self.cache[key.resolution]['lats'].filled(np.nan)
-            data = xr.DataArray(da.from_array(data, chunks=(CHUNK_SIZE, CHUNK_SIZE)),
-                                dims=['y', 'x'])
-        else:
-            data = self.cache[key.resolution]['lons'].filled(np.nan)
-            data = xr.DataArray(da.from_array(data, chunks=(CHUNK_SIZE,
-                                                            CHUNK_SIZE)),
-                                dims=['y', 'x'])
-        data.attrs = info
-        return data
-
-    def load(self, keys, interpolate=True, raw=False):
-        """Load the data."""
-        projectables = []
-        for key in keys:
-            dataset = self.sd.select(key.name.capitalize())
-            fill_value = dataset.attributes()["_FillValue"]
-            try:
-                scale_factor = dataset.attributes()["scale_factor"]
-            except KeyError:
-                scale_factor = 1
-            data = np.ma.masked_equal(dataset.get(), fill_value) * scale_factor
-
-            # TODO: interpolate if needed
-            if (key.resolution is not None and
-                    key.resolution < self.resolution and
-                    interpolate):
-                data = self._interpolate(data, self.resolution, key.resolution)
-            if not raw:
-                data = data.filled(np.nan)
-                data = xr.DataArray(da.from_array(data, chunks=(CHUNK_SIZE,
-                                                                CHUNK_SIZE)),
-                                    dims=['y', 'x'])
-            projectables.append(data)
-
-        return projectables
-
-    @staticmethod
-    def _interpolate(data, coarse_resolution, resolution, interpolator=None):
-        if resolution == coarse_resolution:
-            return data
-
-        if interpolator is None:
-            from geotiepoints.interpolator import Interpolator
-            interpolator = Interpolator
-
-        logger.debug("Interpolating from " + str(coarse_resolution)
-                     + " to " + str(resolution))
-
-        if isinstance(data, (tuple, list, set)):
-            lines = data[0].shape[0]
-        else:
-            lines = data.shape[0]
-
-        if coarse_resolution == 5000:
-            coarse_cols = np.arange(2, 1354, 5)
-            lines *= 5
-            coarse_rows = np.arange(2, lines, 5)
-
-        elif coarse_resolution == 1000:
-            coarse_cols = np.arange(1354)
-            coarse_rows = np.arange(lines)
-
-        if resolution == 1000:
-            fine_cols = np.arange(1354)
-            fine_rows = np.arange(lines)
-            chunk_size = 10
-        elif resolution == 500:
-            fine_cols = np.arange(1354 * 2) / 2.0
-            fine_rows = (np.arange(lines * 2) - 0.5) / 2.0
-            chunk_size = 20
-        elif resolution == 250:
-            fine_cols = np.arange(1354 * 4) / 4.0
-            fine_rows = (np.arange(lines * 4) - 1.5) / 4.0
-            chunk_size = 40
-
-        along_track_order = 1
-        cross_track_order = 3
-
-        satint = interpolator(data,
-                              (coarse_rows, coarse_cols),
-                              (fine_rows, fine_cols),
-                              along_track_order,
-                              cross_track_order,
-                              chunk_size=chunk_size)
-
-        satint.fill_borders("y", "x")
-        return satint.interpolate()
-
-
-class HDFEOSBandReader(HDFEOSFileReader):
-
-    def __init__(self, filename, filename_info, filetype_info):
-        HDFEOSFileReader.__init__(self, filename, filename_info, filetype_info)
-
-        ds = self.metadata['INVENTORYMETADATA'][
-            'COLLECTIONDESCRIPTIONCLASS']['SHORTNAME']['VALUE']
-
-    def get_dataset(self, key, info):
-
-        print(key, info)
-
-        """Read data from file and return the corresponding projectables."""
-        datadict = {
-            1000: ['EV_250_Aggr1km_RefSB',
-                   'EV_500_Aggr1km_RefSB',
-                   'EV_1KM_RefSB',
-                   'EV_1KM_Emissive'],
-            500: ['EV_250_Aggr500_RefSB',
-                  'EV_500_RefSB'],
-            250: ['EV_250_RefSB']}
-
-        platform_name = self.metadata['INVENTORYMETADATA']['ASSOCIATEDPLATFORMINSTRUMENTSENSOR'][
-            'ASSOCIATEDPLATFORMINSTRUMENTSENSORCONTAINER']['ASSOCIATEDPLATFORMSHORTNAME']['VALUE']
-
-        info.update({'platform_name': 'EOS-' + platform_name})
-        info.update({'sensor': 'modis'})
-
-        datasets = datadict[self.resolution]
-        for dataset in datasets:
-            subdata = self.sd.select(dataset)
-            var_attrs = subdata.attributes()
-            band_names = var_attrs["band_names"].split(",")
-
-            # get the relative indices of the desired channel
-            try:
-                index = band_names.index(key.name)
-            except ValueError:
-                continue
-            uncertainty = self.sd.select(dataset + "_Uncert_Indexes")
-            array = xr.DataArray(from_sds(subdata, chunks=CHUNK_SIZE)[index, :, :],
-                                 dims=['y', 'x']).astype(np.float32)
-            valid_range = var_attrs['valid_range']
-            array = array.where(array >= np.float32(valid_range[0]))
-            array = array.where(array <= np.float32(valid_range[1]))
-            array = array.where(from_sds(uncertainty, chunks=CHUNK_SIZE)[index, :, :] < 15)
-
-            if key.calibration == 'brightness_temperature':
-                projectable = calibrate_bt(array, var_attrs, index, key.name)
-                info.setdefault('units', 'K')
-                info.setdefault('standard_name', 'toa_brightness_temperature')
-            elif key.calibration == 'reflectance':
-                projectable = calibrate_refl(array, var_attrs, index)
-                info.setdefault('units', '%')
-                info.setdefault('standard_name',
-                                'toa_bidirectional_reflectance')
-            elif key.calibration == 'radiance':
-                projectable = calibrate_radiance(array, var_attrs, index)
-                info.setdefault('units', var_attrs.get('radiance_units'))
-                info.setdefault('standard_name',
-                                'toa_outgoing_radiance_per_unit_wavelength')
-            elif key.calibration == 'counts':
-                projectable = calibrate_counts(array, var_attrs, index)
-                info.setdefault('units', 'counts')
-                info.setdefault('standard_name', 'counts')  # made up
-            else:
-                raise ValueError("Unknown calibration for "
-                                 "key: {}".format(key))
-            projectable.attrs = info
-
-            return projectable
-
-    # These have to be interpolated...
-    def get_height(self):
-        return self.data.select("Height")
-
-    def get_sunz(self):
-        return self.data.select("SolarZenith")
-
-    def get_suna(self):
-        return self.data.select("SolarAzimuth")
-
-    def get_satz(self):
-        return self.data.select("SensorZenith")
-
-    def get_sata(self):
-        return self.data.select("SensorAzimuth")

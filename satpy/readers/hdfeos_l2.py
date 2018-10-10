@@ -70,10 +70,23 @@ class HDFEOSBandReader_L2(BaseFileHandler):
 
         self.nc = xr.open_dataset(filename,
                                   decode_cf=True,
-                                  mask_and_scale=True,
+                                  mask_and_scale=False,
                                   chunks=chunks)
 
-        # self.nc = self.nc.rename({'columns': 'x', 'rows': 'y'})
+        # rename dimensions to x/y
+        # anything with Samples -> x
+        # anything with Lines   -> y
+        dim_mapper = {}
+
+        for dim_name in self.nc.dims:
+            if "Samples" in dim_name:
+                dim_mapper[dim_name] = 'x'
+            elif "Lines" in dim_name:
+                dim_mapper[dim_name] = 'y'
+            else:
+                logger.debug('Unexpected dimension name: %s', dim_name)
+
+        self.nc = self.nc.rename(dim_mapper)
 
         # TODO: get metadata from the manifest file (xfdumanifest.xml)
         self.platform_name = PLATFORM_NAMES[filename_info['platform_indicator']]
@@ -106,9 +119,17 @@ class HDFEOSBandReader_L2(BaseFileHandler):
         ds_name = '{resolution} Surface Reflectance Band {band_num}'.format(resolution=resolution, 
                                                                             band_num=band_num)
 
-        variable = self.nc[ds_name]
+        ds = self.nc[ds_name]
 
-        return variable
+        # print(ds.attrs)
+
+        scale_factor = 1 / ds.attrs['scale_factor']
+        scale_offset = ds.attrs['add_offset']
+
+        ds = ds.where(ds != ds.attrs['_FillValue'])
+        ds = ds * scale_factor + scale_offset
+
+        return ds
 
     def read_mda(self, attribute):
 

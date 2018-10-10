@@ -27,6 +27,144 @@ datasets:
     file_type: hdf_eos_l2
     coordinates: [longitude, latitude]
 
+  'b1_500m':
+    name: 'b1_500m'
+    resolution: 500
+    file_type: hdf_eos_l2
+    coordinates: [longitude, latitude]
+
+  'b2_500m':
+    name: 'b2_500m'
+    resolution: 500
+    file_type: hdf_eos_l2
+    coordinates: [longitude, latitude]
+
+  'b3_500m':
+    name: 'b3_500m'
+    resolution: 500
+    file_type: hdf_eos_l2
+    coordinates: [longitude, latitude]
+
+  'b4_500m':
+    name: 'b4_500m'
+    resolution: 500
+    file_type: hdf_eos_l2
+    coordinates: [longitude, latitude]
+
+  'b5_500m':
+    name: 'b5_500m'
+    resolution: 500
+    file_type: hdf_eos_l2
+    coordinates: [longitude, latitude]
+
+  'b6_500m':
+    name: 'b6_500m'
+    resolution: 500
+    file_type: hdf_eos_l2
+    coordinates: [longitude, latitude]
+
+  'b7_500m':
+    name: 'b7_500m'
+    resolution: 500
+    file_type: hdf_eos_l2
+    coordinates: [longitude, latitude]
+
+  'b1_1km':
+    name: 'b1_1km'
+    resolution: 1000
+    file_type: hdf_eos_l2
+    coordinates: [longitude, latitude]
+
+  'b2_1km':
+    name: 'b2_1km'
+    resolution: 1000
+    file_type: hdf_eos_l2
+    coordinates: [longitude, latitude]
+
+  'b3_1km':
+    name: 'b3_1km'
+    resolution: 1000
+    file_type: hdf_eos_l2
+    coordinates: [longitude, latitude]
+
+  'b4_1km':
+    name: 'b4_1km'
+    resolution: 1000
+    file_type: hdf_eos_l2
+    coordinates: [longitude, latitude]
+
+  'b5_1km':
+    name: 'b5_1km'
+    resolution: 1000
+    file_type: hdf_eos_l2
+    coordinates: [longitude, latitude]
+
+  'b6_1km':
+    name: 'b6_1km'
+    resolution: 1000
+    file_type: hdf_eos_l2
+    coordinates: [longitude, latitude]
+
+  'b7_1km':
+    name: 'b7_1km'
+    resolution: 1000
+    file_type: hdf_eos_l2
+    coordinates: [longitude, latitude]
+
+  'b8_1km':
+    name: 'b8_1km'
+    resolution: 1000
+    file_type: hdf_eos_l2
+    coordinates: [longitude, latitude]
+
+  'b9_1km':
+    name: 'b9_1km'
+    resolution: 1000
+    file_type: hdf_eos_l2
+    coordinates: [longitude, latitude]
+
+  'b10_1km':
+    name: 'b10_1km'
+    resolution: 1000
+    file_type: hdf_eos_l2
+    coordinates: [longitude, latitude]
+
+  'b11_1km':
+    name: 'b11_1km'
+    resolution: 1000
+    file_type: hdf_eos_l2
+    coordinates: [longitude, latitude]
+
+  'b12_1km':
+    name: 'b12_1km'
+    resolution: 1000
+    file_type: hdf_eos_l2
+    coordinates: [longitude, latitude]
+
+  'b13_1km':
+    name: 'b13_1km'
+    resolution: 1000
+    file_type: hdf_eos_l2
+    coordinates: [longitude, latitude]
+
+  'b14_1km':
+    name: 'b14_1km'
+    resolution: 1000
+    file_type: hdf_eos_l2
+    coordinates: [longitude, latitude]
+
+  'b15_1km':
+    name: 'b15_1km'
+    resolution: 1000
+    file_type: hdf_eos_l2
+    coordinates: [longitude, latitude]
+
+  'b16_1km':
+    name: 'b16_1km'
+    resolution: 1000
+    file_type: hdf_eos_l2
+    coordinates: [longitude, latitude]
+
   longitude1k:
     file_type: hdf_eos_geo
     name: longitude
@@ -40,6 +178,34 @@ datasets:
     resolution: [1000, 500, 250]
     standard_name: latitude
     units: degree
+
+  solar_zenith_angle:
+    name: solar_zenith_angle
+    sensor: modis
+    resolution: 1000
+    coordinates: [longitude, latitude]
+    file_type: hdf_eos_geo
+
+  solar_azimuth_angle:
+    name: solar_azimuth_angle
+    sensor: modis
+    resolution: 1000
+    coordinates: [longitude, latitude]
+    file_type: hdf_eos_geo
+
+  satellite_zenith_angle:
+    name: satellite_zenith_angle
+    sensor: modis
+    resolution: 1000
+    coordinates: [longitude, latitude]
+    file_type: hdf_eos_geo
+
+  satellite_azimuth_angle:
+    name: satellite_azimuth_angle
+    sensor: modis
+    resolution: 1000
+    coordinates: [longitude, latitude]
+    file_type: hdf_eos_geo
 
 file_types:
   hdf_eos_l2:

@@ -113,21 +113,26 @@ class HDFEOSBandReader_L2(BaseFileHandler):
 
         logger.debug('Reading %s.', key.name)
 
-        band_name, resolution = info['name'].split('_')
-        band_num = band_name[1:]
+        # band_name, resolution = info['name'].split('_')
+        # band_num = band_name[1:]
 
-        ds_name = '{resolution} Surface Reflectance Band {band_num}'.format(resolution=resolution, 
-                                                                            band_num=band_num)
+        # BAND31                                 
+        # BAND32                                 
+        # 1km Reflectance Data State QA
 
-        ds = self.nc[ds_name]
 
-        # print(ds.attrs)
+        # ds_name = '{resolution} Surface Reflectance Band {band_num}'.format(resolution=resolution, 
+        #                                                                     band_num=band_num)
 
-        scale_factor = 1 / ds.attrs['scale_factor']
-        scale_offset = ds.attrs['add_offset']
+        ds = self.nc[info['name']]
 
-        ds = ds.where(ds != ds.attrs['_FillValue'])
-        ds = ds * scale_factor + scale_offset
+        if 'scale_factor' in ds.attrs:
+            scale_factor = 1 / ds.attrs['scale_factor']
+            scale_offset = ds.attrs['add_offset']
+            ds = ds * scale_factor + scale_offset
+
+        if '_FillValue' in ds.attrs:
+            ds = ds.where(ds != ds.attrs['_FillValue'])
 
         return ds
 

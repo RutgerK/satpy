@@ -16,151 +16,169 @@ navigations:
 
 datasets:
   'b1_250m':
-    name: 'b1_250m'
+    name: '250m Surface Reflectance Band 1'
     resolution: 250
     file_type: hdf_eos_l2
     coordinates: [longitude, latitude]
 
   'b2_250m':
-    name: 'b2_250m'
+    name: '250m Surface Reflectance Band 2'
     resolution: 250
     file_type: hdf_eos_l2
     coordinates: [longitude, latitude]
 
   'b1_500m':
-    name: 'b1_500m'
+    name: '500m Surface Reflectance Band 1'
     resolution: 500
     file_type: hdf_eos_l2
     coordinates: [longitude, latitude]
 
   'b2_500m':
-    name: 'b2_500m'
+    name: '500m Surface Reflectance Band 2'
     resolution: 500
     file_type: hdf_eos_l2
     coordinates: [longitude, latitude]
 
   'b3_500m':
-    name: 'b3_500m'
+    name: '500m Surface Reflectance Band 3'
     resolution: 500
     file_type: hdf_eos_l2
     coordinates: [longitude, latitude]
 
   'b4_500m':
-    name: 'b4_500m'
+    name: '500m Surface Reflectance Band 4'
     resolution: 500
     file_type: hdf_eos_l2
     coordinates: [longitude, latitude]
 
   'b5_500m':
-    name: 'b5_500m'
+    name: '500m Surface Reflectance Band 5'
     resolution: 500
     file_type: hdf_eos_l2
     coordinates: [longitude, latitude]
 
   'b6_500m':
-    name: 'b6_500m'
+    name: '500m Surface Reflectance Band 6'
     resolution: 500
     file_type: hdf_eos_l2
     coordinates: [longitude, latitude]
 
   'b7_500m':
-    name: 'b7_500m'
+    name: '500m Surface Reflectance Band 7'
     resolution: 500
     file_type: hdf_eos_l2
     coordinates: [longitude, latitude]
 
   'b1_1km':
-    name: 'b1_1km'
+    name: '1km Surface Reflectance Band 1'
     resolution: 1000
     file_type: hdf_eos_l2
     coordinates: [longitude, latitude]
 
   'b2_1km':
-    name: 'b2_1km'
+    name: '1km Surface Reflectance Band 2'
     resolution: 1000
     file_type: hdf_eos_l2
     coordinates: [longitude, latitude]
 
   'b3_1km':
-    name: 'b3_1km'
+    name: '1km Surface Reflectance Band 3'
     resolution: 1000
     file_type: hdf_eos_l2
     coordinates: [longitude, latitude]
 
   'b4_1km':
-    name: 'b4_1km'
+    name: '1km Surface Reflectance Band 4'
     resolution: 1000
     file_type: hdf_eos_l2
     coordinates: [longitude, latitude]
 
   'b5_1km':
-    name: 'b5_1km'
+    name: '1km Surface Reflectance Band 5'
     resolution: 1000
     file_type: hdf_eos_l2
     coordinates: [longitude, latitude]
 
   'b6_1km':
-    name: 'b6_1km'
+    name: '1km Surface Reflectance Band 6'
     resolution: 1000
     file_type: hdf_eos_l2
     coordinates: [longitude, latitude]
 
   'b7_1km':
-    name: 'b7_1km'
+    name: '1km Surface Reflectance Band 7'
     resolution: 1000
     file_type: hdf_eos_l2
     coordinates: [longitude, latitude]
 
   'b8_1km':
-    name: 'b8_1km'
+    name: '1km Surface Reflectance Band 8'
     resolution: 1000
     file_type: hdf_eos_l2
     coordinates: [longitude, latitude]
 
   'b9_1km':
-    name: 'b9_1km'
+    name: '1km Surface Reflectance Band 9'
     resolution: 1000
     file_type: hdf_eos_l2
     coordinates: [longitude, latitude]
 
   'b10_1km':
-    name: 'b10_1km'
+    name: '1km Surface Reflectance Band 10'
     resolution: 1000
     file_type: hdf_eos_l2
     coordinates: [longitude, latitude]
 
   'b11_1km':
-    name: 'b11_1km'
+    name: '1km Surface Reflectance Band 11'
     resolution: 1000
     file_type: hdf_eos_l2
     coordinates: [longitude, latitude]
 
   'b12_1km':
-    name: 'b12_1km'
+    name: '1km Surface Reflectance Band 12'
     resolution: 1000
     file_type: hdf_eos_l2
     coordinates: [longitude, latitude]
 
   'b13_1km':
-    name: 'b13_1km'
+    name: '1km Surface Reflectance Band 13'
     resolution: 1000
     file_type: hdf_eos_l2
     coordinates: [longitude, latitude]
 
   'b14_1km':
-    name: 'b14_1km'
+    name: '1km Surface Reflectance Band 14'
     resolution: 1000
     file_type: hdf_eos_l2
     coordinates: [longitude, latitude]
 
   'b15_1km':
-    name: 'b15_1km'
+    name: '1km Surface Reflectance Band 15'
     resolution: 1000
     file_type: hdf_eos_l2
     coordinates: [longitude, latitude]
 
   'b16_1km':
-    name: 'b16_1km'
+    name: '1km Surface Reflectance Band 16'
+    resolution: 1000
+    file_type: hdf_eos_l2
+    coordinates: [longitude, latitude]
+
+  'b31_1km':
+    name: 'BAND31'
+    resolution: 1000
+    file_type: hdf_eos_l2
+    coordinates: [longitude, latitude]
+
+  'b32_1km':
+    name: 'BAND32'
+    resolution: 1000
+    file_type: hdf_eos_l2
+    coordinates: [longitude, latitude]
+
+  'state_qa_1km':
+    name: '1km Reflectance Data State QA '
     resolution: 1000
     file_type: hdf_eos_l2
     coordinates: [longitude, latitude]
